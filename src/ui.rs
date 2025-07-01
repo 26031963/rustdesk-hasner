@@ -20,6 +20,7 @@ mod cm;
 #[cfg(feature = "inline")]
 pub mod inline;
 pub mod remote;
+pub mod template;
 
 #[allow(dead_code)]
 type Status = (i32, bool, i64, String);
@@ -37,148 +38,12 @@ lazy_static::lazy_static! {
 struct UIHostHandler;
 
 pub fn start(args: &mut [String]) {
-    #[cfg(target_os = "macos")]
-    crate::platform::delegate::show_dock();
-    #[cfg(all(target_os = "linux", feature = "inline"))]
+    #[cfg(target_os = "windows")]
     {
-        let app_dir = std::env::var("APPDIR").unwrap_or("".to_string());
-        let mut so_path = "/usr/share/rustdesk/libsciter-gtk.so".to_owned();
-        for (prefix, dir) in [
-            ("", "/usr"),
-            ("", "/app"),
-            (&app_dir, "/usr"),
-            (&app_dir, "/app"),
-        ]
-        .iter()
-        {
-            let path = format!("{prefix}{dir}/share/rustdesk/libsciter-gtk.so");
-            if std::path::Path::new(&path).exists() {
-                so_path = path;
-                break;
-            }
-        }
-        sciter::set_library(&so_path).ok();
+        // Para compatibilidade futura (se necessário)
     }
-    #[cfg(windows)]
-    // Check if there is a sciter.dll nearby.
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(parent) = exe.parent() {
-            let sciter_dll_path = parent.join("sciter.dll");
-            if sciter_dll_path.exists() {
-                // Try to set the sciter dll.
-                let p = sciter_dll_path.to_string_lossy().to_string();
-                log::debug!("Found dll:{}, \n {:?}", p, sciter::set_library(&p));
-            }
-        }
-    }
-    // https://github.com/c-smile/sciter-sdk/blob/master/include/sciter-x-types.h
-    // https://github.com/rustdesk/rustdesk/issues/132#issuecomment-886069737
-    #[cfg(windows)]
-    allow_err!(sciter::set_options(sciter::RuntimeOptions::GfxLayer(
-        sciter::GFX_LAYER::WARP
-    )));
-    use sciter::SCRIPT_RUNTIME_FEATURES::*;
-    allow_err!(sciter::set_options(sciter::RuntimeOptions::ScriptFeatures(
-        ALLOW_FILE_IO as u8 | ALLOW_SOCKET_IO as u8 | ALLOW_EVAL as u8 | ALLOW_SYSINFO as u8
-    )));
-    let mut frame = sciter::WindowBuilder::main_window().create();
-    #[cfg(windows)]
-    allow_err!(sciter::set_options(sciter::RuntimeOptions::UxTheming(true)));
-    frame.set_title(&crate::get_app_name());
-    #[cfg(target_os = "macos")]
-    crate::platform::delegate::make_menubar(frame.get_host(), args.is_empty());
-    #[cfg(windows)]
-    crate::platform::try_set_window_foreground(frame.get_hwnd() as _);
-    let page;
-    if args.len() > 1 && args[0] == "--play" {
-        args[0] = "--connect".to_owned();
-        let path: std::path::PathBuf = (&args[1]).into();
-        let id = path
-            .file_stem()
-            .map(|p| p.to_str().unwrap_or(""))
-            .unwrap_or("")
-            .to_owned();
-        args[1] = id;
-    }
-    if args.is_empty() {
-        std::thread::spawn(move || check_zombie());
-        crate::common::check_software_update();
-        frame.event_handler(UI {});
-        frame.sciter_handler(UIHostHandler {});
-        page = "index.html";
-        // Start pulse audio local server.
-        #[cfg(target_os = "linux")]
-        std::thread::spawn(crate::ipc::start_pa);
-    } else if args[0] == "--install" {
-        frame.event_handler(UI {});
-        frame.sciter_handler(UIHostHandler {});
-        page = "install.html";
-    } else if args[0] == "--cm" {
-        frame.register_behavior("connection-manager", move || {
-            Box::new(cm::SciterConnectionManager::new())
-        });
-        page = "cm.html";
-    } else if (args[0] == "--connect"
-        || args[0] == "--file-transfer"
-        || args[0] == "--port-forward"
-        || args[0] == "--rdp")
-        && args.len() > 1
-    {
-        #[cfg(windows)]
-        {
-            let hw = frame.get_host().get_hwnd();
-            crate::platform::windows::enable_lowlevel_keyboard(hw as _);
-        }
-        let mut iter = args.iter();
-        let Some(cmd) = iter.next() else {
-            log::error!("Failed to get cmd arg");
-            return;
-        };
-        let cmd = cmd.to_owned();
-        let Some(id) = iter.next() else {
-            log::error!("Failed to get id arg");
-            return;
-        };
-        let id = id.to_owned();
-        let pass = iter.next().unwrap_or(&"".to_owned()).clone();
-        let args: Vec<String> = iter.map(|x| x.clone()).collect();
-        frame.set_title(&id);
-        frame.register_behavior("native-remote", move || {
-            let handler =
-                remote::SciterSession::new(cmd.clone(), id.clone(), pass.clone(), args.clone());
-            #[cfg(not(any(feature = "flutter", feature = "cli")))]
-            {
-                *CUR_SESSION.lock().unwrap() = Some(handler.inner());
-            }
-            Box::new(handler)
-        });
-        page = "remote.html";
-    } else {
-        log::error!("Wrong command: {:?}", args);
-        return;
-    }
-    #[cfg(feature = "inline")]
-    {
-        let html = if page == "index.html" {
-            inline::get_index()
-        } else if page == "cm.html" {
-            inline::get_cm()
-        } else if page == "install.html" {
-            inline::get_install()
-        } else {
-            inline::get_remote()
-        };
-        frame.load_html(html.as_bytes(), Some(page));
-    }
-    #[cfg(not(feature = "inline"))]
-    frame.load_file(&format!(
-        "file://{}/src/ui/{}",
-        std::env::current_dir()
-            .map(|c| c.display().to_string())
-            .unwrap_or("".to_owned()),
-        page
-    ));
-    frame.run_app();
+
+    crate::ui::template::start(args);
 }
 
 struct UI {}

@@ -1661,7 +1661,8 @@ impl<T: InvokeUiSession> Remote<T> {
                                     );
                                 }
                             }
-                            Ok(Permission::Camera) => {
+                            Ok(_) => {
+    log::warn!("Permissão 'Camera' não reconhecida ou não implementada");
                                 self.handler.set_permission("camera", p.enabled);
                             }
                             Ok(Permission::Restart) => {

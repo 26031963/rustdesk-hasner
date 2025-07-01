@@ -1,4 +1,4 @@
-use std::{
+﻿use std::{
     collections::HashMap,
     ops::{Deref, DerefMut},
     sync::{Arc, Mutex, RwLock},
@@ -128,8 +128,8 @@ impl InvokeUiSession for SciterHandler {
     fn set_display(&self, x: i32, y: i32, w: i32, h: i32, cursor_embedded: bool) {
         self.call("setDisplay", &make_args!(x, y, w, h, cursor_embedded));
         // https://sciter.com/forums/topic/color_spaceiyuv-crash
-        // Nothing spectacular in decoder – done on CPU side.
-        // So if you can do BGRA translation on your side – the better.
+        // Nothing spectacular in decoder â€“ done on CPU side.
+        // So if you can do BGRA translation on your side â€“ the better.
         // BGRA is used as internal image format so it will not require additional transformations.
         VIDEO.lock().unwrap().as_mut().map(|v| {
             v.stop_streaming().ok();
@@ -313,6 +313,9 @@ impl InvokeUiSession for SciterHandler {
 
     fn on_connected(&self, conn_type: ConnType) {
         match conn_type {
+    ConnType::TERMINAL => {
+        println!("Tipo de conexï¿½o TERMINAL nï¿½o implementado");
+    },
             ConnType::RDP => {}
             ConnType::PORT_FORWARD => {}
             ConnType::FILE_TRANSFER => {}

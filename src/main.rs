@@ -1,4 +1,4 @@
-#![cfg_attr(
+﻿#![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
@@ -29,10 +29,14 @@ fn main() {
     unsafe {
         winapi::um::shellscalingapi::SetProcessDpiAwareness(2);
     }
-    if let Some(args) = crate::core_main::core_main().as_mut() {
-        ui::start(args);
-    }
-    common::global_clean();
+ println!(">> Entrando em core_main()");
+if let Some(args) = crate::core_main::core_main().as_mut() {
+    println!(">> core_main retornou Some, chamando ui::template::start()");
+    ui::template::start(args);
+    println!(">> ui::template::start() foi chamado com sucesso.");
+}
+common::global_clean();
+
 }
 
 #[cfg(feature = "cli")]
@@ -104,3 +108,4 @@ fn main() {
     }
     common::global_clean();
 }
+
