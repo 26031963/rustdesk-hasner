@@ -1,4 +1,5 @@
 use hbb_common::{fs, log, message_proto::*};
+use crate::ui::remote::make_fd;
 
 use super::{Data, Interface};
 
@@ -25,7 +26,7 @@ pub trait FileManager: Interface {
         match fs::read_dir(&fs::get_path(&path), include_hidden) {
             Err(_) => sciter::Value::null(),
             Ok(fd) => {
-                use crate::ui::remote::make_fd;
+//                 use crate::ui::remote::make_fd;
                 let mut m = make_fd(0, &fd.entries.to_vec(), false);
                 m.set_item("path", path);
                 m

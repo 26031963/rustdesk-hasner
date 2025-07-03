@@ -1,35 +1,97 @@
-<html>
-  <head>
-    <style>
-      body {
-        background-color: #0f0f0f;
-        color: #ffffff;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding-top: 10%;
-      }
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>HASNER</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
 
+    header {
+      background-color: #0078d4;
+      color: white;
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
 
-      img.logo {
-        width: 120px;
-        height: auto;
-        margin-bottom: 20px;
-      }
+    .container {
+      padding: 15px;
+    }
 
-      h1 {
-        font-size: 2.5em;
-        margin-bottom: 10px;
-      }
+    .info-box {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
 
-      p {
-        font-size: 1.2em;
-        color: #aaaaaa;
-      }
-    </style>
-  </head>
-  <body>
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAApi0lEQVR4nO2debwlV1Xv..." class="logo" />
-    <h1>Bem-vindo ao HasnerLab</h1>
-    <p>Sua aplicação de acesso remoto personalizada</p>
-  </body>
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+
+    .chat-box {
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      margin-top: 10px;
+      height: 60px;
+      resize: none;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005ea1;
+    }
+  </style>
+</head>
+<body>
+  <header>HASNER</header>
+  <div class="container">
+    <div class="info-box">
+      <label>ID da máquina:</label>
+      <input type="text" value="61605665" readonly>
+
+      <label>Código de acesso:</label>
+      <input type="text" value="5y1633" readonly>
+    </div>
+
+    <div class="chat-box">
+      <p><strong>Suporte:</strong> Olá! Como posso ajudar?</p>
+    </div>
+
+    <textarea placeholder="Digite uma mensagem..."></textarea>
+    <button>Enviar</button>
+  </div>
+</body>
 </html>
