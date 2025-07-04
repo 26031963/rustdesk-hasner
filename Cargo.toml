@@ -199,6 +199,7 @@ winres = "0.1"
 winapi = { version = "0.3", features = [ "winnt", "pdh", "synchapi" ] }
 
 [build-dependencies]
+embed-resource = "2.3"
 cc = "1.0"
 hbb_common = { path = "libs/hbb_common" }
 os-version = "0.2"

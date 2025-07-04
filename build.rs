@@ -22,79 +22,57 @@ fn build_mac() {
     println!("cargo:rerun-if-changed={}", file);
 }
 
-#[cfg(all(windows, feature = "inline"))]
-fn build_manifest() {
-    use std::io::Write;
-    if std::env::var("PROFILE").unwrap() == "release" {
-        let mut res = winres::WindowsResource::new();
-        res.set_icon("res/icon.ico")
-            .set_language(winapi::um::winnt::MAKELANGID(
-                winapi::um::winnt::LANG_ENGLISH,
-                winapi::um::winnt::SUBLANG_ENGLISH_US,
-            ))
-            .set_manifest_file("res/manifest.xml");
-        match res.compile() {
-            Err(e) => {
-                write!(std::io::stderr(), "{}", e).unwrap();
-                std::process::exit(1);
-            }
-            Ok(_) => {}
-        }
-    }
-}
-
 fn install_android_deps() {
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
     if target_os != "android" {
         return;
     }
     let mut target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    if target_arch == "x86_64" {
-        target_arch = "x64".to_owned();
-    } else if target_arch == "x86" {
-        target_arch = "x86".to_owned();
-    } else if target_arch == "aarch64" {
-        target_arch = "arm64".to_owned();
-    } else {
-        target_arch = "arm".to_owned();
-    }
+    target_arch = match target_arch.as_str() {
+        "x86_64" => "x64".to_owned(),
+        "x86" => "x86".to_owned(),
+        "aarch64" => "arm64".to_owned(),
+        _ => "arm".to_owned(),
+    };
     let target = format!("{}-android", target_arch);
     let vcpkg_root = std::env::var("VCPKG_ROOT").unwrap();
-    let mut path: std::path::PathBuf = vcpkg_root.into();
-    if let Ok(vcpkg_root) = std::env::var("VCPKG_INSTALLED_ROOT") {
-        path = vcpkg_root.into();
+    let mut path: std::path::PathBuf = if let Ok(v) = std::env::var("VCPKG_INSTALLED_ROOT") {
+        v.into()
     } else {
-        path.push("installed");
-    }
-    path.push(target);
-    println!(
-        "{}",
-        format!(
-            "cargo:rustc-link-search={}",
-            path.join("lib").to_str().unwrap()
-        )
-    );
+        let mut p: std::path::PathBuf = vcpkg_root.into();
+        p.push("installed");
+        p
+    };
+    path.push(&target);
+    println!("cargo:rustc-link-search={}", path.join("lib").to_str().unwrap());
     println!("cargo:rustc-link-lib=ndk_compat");
     println!("cargo:rustc-link-lib=oboe");
     println!("cargo:rustc-link-lib=c++");
     println!("cargo:rustc-link-lib=OpenSLES");
 }
 
+#[cfg(windows)]
+fn embed_rc() {
+    embed_resource::compile("hasner_icon.rc", embed_resource::NONE);
+}
+
 fn main() {
     hbb_common::gen_version();
     install_android_deps();
-    #[cfg(all(windows, feature = "inline"))]
-    build_manifest();
+
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+
     #[cfg(windows)]
-    build_windows();
-    let mut res = winres::WindowsResource::new();
-    res.set_icon("assets/icon.ico"); // caminho relativo ao Cargo.toml
-    res.compile().unwrap();
-	let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
-    if target_os == "macos" {
-        #[cfg(target_os = "macos")]
-        build_mac();
-        println!("cargo:rustc-link-lib=framework=ApplicationServices");
+    {
+        build_windows();
+        embed_rc();
     }
+
+    #[cfg(target_os = "macos")]
+    {
+        build_mac();
+        println!("cargo:rustc-link-arg-bins=hasner_icon.res");
+    }
+
     println!("cargo:rerun-if-changed=build.rs");
 }

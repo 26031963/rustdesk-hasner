@@ -8,6 +8,7 @@ pub fn start(_args: &mut [String]) {
 
     println!(">> Entrando em ui::template::start()");
     let mut frame = Window::new();
+
     println!(">> Iniciando carregamento do HTML...");
 
     let html = include_str!("template/assets/welcome.html");
@@ -20,4 +21,3 @@ pub fn start(_args: &mut [String]) {
     println!(">> Frame inicializado, entrando no loop da aplicação...");
     frame.run_app();
 }
-
